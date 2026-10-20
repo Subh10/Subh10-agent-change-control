@@ -1,0 +1,8 @@
+{
+  "agent_id": "demo-coding-agent",
+  "database_id": "customer-prod-postgres",
+  "environment": "production",
+  "sql": "DELETE FROM sessions WHERE last_seen_at < NOW() - INTERVAL '90 days'",
+  "idempotency_key": "demo-session-cleanup-v01",
+  "metadata": {"ticket": "DEMO-101", "purpose": "retention cleanup"}
+}
