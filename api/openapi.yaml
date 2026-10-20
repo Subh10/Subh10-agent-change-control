@@ -1,0 +1,84 @@
+openapi: 3.1.0
+info:
+  title: Agent Change Control API
+  version: 0.1.0
+  description: Prototype only. Execution endpoint simulates and never sends SQL to a database.
+servers:
+  - url: http://127.0.0.1:8000
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200': { description: Service is available; mode is simulation-only }
+  /v1/changes/plan:
+    post:
+      summary: Create an idempotent change plan
+      operationId: planChange
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ChangePlan' }
+      responses:
+        '201': { description: Change plan created }
+        '409': { description: Idempotency key reused with different payload }
+  /v1/changes/{change_id}/validate:
+    post:
+      summary: Evaluate policy for the exact change payload
+      parameters: [{ in: path, name: change_id, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Validation result and state }
+        '404': { description: Change not found }
+  /v1/changes/{change_id}/approve:
+    post:
+      summary: Approve the exact validated payload
+      parameters: [{ in: path, name: change_id, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approver_id, approved_change_hash, reason]
+              properties:
+                approver_id: { type: string }
+                approved_change_hash: { type: string, pattern: '^[a-f0-9]{64}$' }
+                reason: { type: string }
+      responses:
+        '200': { description: Approved }
+        '409': { description: State or hash conflict }
+  /v1/changes/{change_id}/execute:
+    post:
+      summary: Simulate execution (no database connection)
+      parameters: [{ in: path, name: change_id, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Simulation result and receipt }
+        '403': { description: Policy or approval gate denied execution }
+  /v1/changes/{change_id}:
+    get:
+      summary: Get change state
+      parameters: [{ in: path, name: change_id, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Change record }
+        '404': { description: Change not found }
+  /v1/changes/{change_id}/receipt:
+    get:
+      summary: Get receipt after simulated execution
+      parameters: [{ in: path, name: change_id, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Receipt }
+        '409': { description: Receipt not yet available }
+components:
+  schemas:
+    ChangePlan:
+      type: object
+      additionalProperties: false
+      required: [agent_id, database_id, environment, sql, idempotency_key]
+      properties:
+        agent_id: { type: string, minLength: 1, maxLength: 128 }
+        database_id: { type: string, minLength: 1, maxLength: 128 }
+        environment: { type: string, minLength: 1, maxLength: 32 }
+        sql: { type: string, minLength: 1, maxLength: 100000 }
+        idempotency_key: { type: string, minLength: 8, maxLength: 256 }
+        metadata: { type: object, default: {} }
