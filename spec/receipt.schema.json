@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/agent-change-control/receipt.schema.json",
+  "title": "Change Receipt v0.1",
+  "type": "object",
+  "required": ["receipt_version", "change_id", "change_hash", "status", "validation", "issued_at", "integrity"],
+  "properties": {
+    "receipt_version": {"const": "0.1"},
+    "change_id": {"type": "string"},
+    "change_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "status": {"type": "string"},
+    "validation": {"type": "object"},
+    "approver_id": {"type": ["string", "null"]},
+    "result": {"type": ["object", "null"]},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "integrity": {
+      "type": "object",
+      "required": ["algorithm", "signature", "key_configured"],
+      "properties": {
+        "algorithm": {"const": "HMAC-SHA256"},
+        "signature": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "key_configured": {"type": "boolean"}
+      }
+    }
+  }
+}
