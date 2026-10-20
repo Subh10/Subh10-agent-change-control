@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/agent-change-control/change.schema.json",
+  "title": "Database Change Plan v0.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["agent_id", "database_id", "environment", "sql", "idempotency_key"],
+  "properties": {
+    "agent_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "database_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "environment": {"type": "string", "minLength": 1, "maxLength": 32},
+    "sql": {"type": "string", "minLength": 1, "maxLength": 100000},
+    "idempotency_key": {"type": "string", "minLength": 8, "maxLength": 256},
+    "metadata": {"type": "object", "default": {}}
+  }
+}
